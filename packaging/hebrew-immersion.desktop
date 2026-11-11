@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Hebrew Immersion
+Comment=Aprenda hebraico bíblico por imersão
+Exec=hebrew-immersion
+Icon=org.hebrewimmersion.App
+Terminal=false
+Type=Application
+Categories=Education;Languages;

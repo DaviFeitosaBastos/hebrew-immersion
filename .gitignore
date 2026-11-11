@@ -1,0 +1,28 @@
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.DS_Store
+*.swp
+*~
+backups/
+
+# Configurações e artefatos específicos da máquina
+/hebrew-immersion.desktop
+.directory
+.idea/
+.vscode/
+Thumbs.db
+*.tsbuildinfo
+npm-debug.log*
+
+# Perfis e dados locais do Electron
+/userData/
+/profiles/

@@ -1,0 +1,24 @@
+app-id: org.hebrewimmersion.App
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: hebrew-immersion
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+modules:
+  - name: hebrew-immersion
+    buildsystem: simple
+    build-commands:
+      - install -D main.js /app/share/hebrew-immersion/main.js
+      - install -D package.json /app/share/hebrew-immersion/package.json
+      - install -D src/index.html /app/share/hebrew-immersion/src/index.html
+      - install -D src/style.css /app/share/hebrew-immersion/src/style.css
+      - install -D src/app.js /app/share/hebrew-immersion/src/app.js
+      - install -D src/words.json /app/share/hebrew-immersion/src/words.json
+      - install -Dm644 packaging/hebrew-immersion.desktop /app/share/applications/org.hebrewimmersion.App.desktop
+    sources:
+      - type: dir
+        path: ..
