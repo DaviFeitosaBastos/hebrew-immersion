@@ -81,6 +81,9 @@ test('session keeps Portuguese hidden, accepts recognition without translation a
   assert.ok(!nodes['#reviewSession'].innerHTML.includes('Cavalo'));
   const token = run('reviewToken');
   run(`gradeReview(4,${token})`);
+  assert.equal(run('reviewCursor'), 0);
+  assert.ok(nodes['#reviewGradeFeedback'].textContent.includes('Avaliação salva'));
+  run(`advanceReview(${token})`);
   assert.equal(run('reviewCursor'), 1);
   run(`gradeReview(4,${token})`);
   assert.equal(run('reviewCursor'), 1);
@@ -92,7 +95,7 @@ test('session keeps Portuguese hidden, accepts recognition without translation a
 
 test('completion refreshes counters and no pending review can start again', () => {
   const { run, nodes } = setup();
-  run('mark(1);reviewPage();startReview(dueWords());gradeReview(4,reviewToken)');
+  run('mark(1);reviewPage();startReview(dueWords());gradeReview(4,reviewToken);advanceReview(reviewToken)');
   assert.equal(run('dueWords().length'), 0);
   assert.equal(run('reviewItems.length'), 0);
   assert.ok(nodes['#reviewMessage'].textContent.includes('concluída'));
@@ -120,4 +123,22 @@ test('vocabulary reveal contains only Portuguese and marking preserves a reveale
   run('mark(1)');
   assert.equal(nodes['#meaning1'].textContent, 'Cavalo');
   assert.ok(!run('card(words[0])').includes('Cavalo'));
+});
+
+test('a grade waits for explicit advance, shows the schedule and cannot be saved twice', () => {
+  const {run,nodes,store}=setup();
+  run('mark(1);reviewPage();startReview(dueWords())');
+  const token=run('reviewToken');
+  run(`advanceReview(${token})`);
+  assert.equal(run('reviewCursor'),0);
+  run(`gradeReview(1,${token})`);
+  assert.equal(run('reviewCursor'),0);
+  assert.equal(nodes['#reviewProgress'].value,1);
+  assert.ok(nodes['#reviewGradeFeedback'].textContent.includes('10 minutos'));
+  assert.equal(nodes['#nextReviewWord'].hidden,false);
+  const saved=store['hi.srs.v1'];
+  run(`gradeReview(5,${token})`);
+  assert.equal(store['hi.srs.v1'],saved);
+  run(`advanceReview(${token})`);
+  assert.ok(nodes['#reviewMessage'].textContent.includes('concluída'));
 });

@@ -3,7 +3,7 @@
 Auditoria inicial: 2026-11-10. Versão 0.3.0, protótipo. A primeira etapa alterou apenas documentação e .gitignore; atualização do alfabeto descrita abaixo.
 
 ## Ambiente e segurança
-Raiz: `/home/davi/dev/projects/program/hebrew-immersion`. Fedora Workstation 44 confirmado; Node 22.23.1, npm 10.9.8, RTK 0.44.2; flatpak e flatpak-builder disponíveis. Electron 31.7.7 e electron-builder 24.13.3 no lock.
+Raiz: pasta do projeto (caminho específico da máquina omitido). Fedora Workstation 44 confirmado; Node 22.23.1, npm 10.9.8, RTK 0.44.2; flatpak e flatpak-builder disponíveis. Electron 31.7.7 e electron-builder 24.13.3 no lock.
 
 A sessão declara sandbox `workspace-write`, escrita no projeto e `/tmp`, rede restrita e mecanismo de aprovação por solicitação. Não alterei configurações nem tentei escapes ou rede. Essas políticas são impostas pelo cliente, não pelos arquivos do projeto: conferir `workspace-write`, `on-request` e rede restrita nas configurações da próxima sessão; não presumir que este documento as habilita. O escopo deste trabalho permaneceu no projeto, além da leitura autorizada de RTK.md e da identificação do sistema.
 
@@ -123,3 +123,53 @@ Licença do código/conteúdo autoral ainda não definida; não foi atribuída u
 Usuário autorizou criar o repositório público `hebrew-immersion`, mover para `pushed/` e fazer o push. Projeto movido para `pushed/hebrew-immersion/` e Git inicializado com branch `main`. O atalho local ignorado foi ajustado ao novo caminho.
 
 A integração GitHub reconhece a conta, mas não expõe criação de repositórios. GitHub CLI ausente e acesso direto a api.github.com indisponível nesta sessão (falha de resolução DNS). Preparação do commit local segue autorizada; criação remota e push aguardam acesso adequado. Não há confirmação de publicação.
+
+## 2026-11-12 — Alfabeto em uma visão compacta
+
+As quatro etapas do alfabeto foram reunidas em uma tela: grade permanente com as 22 letras em ordem RTL, nomes e indicações de som, com as cinco formas finais ao lado das letras correspondentes. A seleção abre o detalhe com foco acessível, sem navegação por setas. Orientações e treino continuam disponíveis em blocos recolhíveis. Marcadores antigos de introdução/formas finais retornam à grade; a letra selecionada continua sendo restaurada. Niqqud e Dagesh não foram alterados.
+
+Validação: suíte automatizada aprovada (alfabeto, revisão, plano, sinais e continuidade); sem conferência visual em sessão gráfica ou revisão linguística externa. Conteúdo e limitações de pronúncia preservados.
+
+### Ajuste visual do alfabeto
+
+Grade com cartões uniformes, nomes únicos, letras sem Dagesh, ordem RTL numerada e formas finais em tamanho secundário. Sons e observações ficam no painel de detalhes, lateral em janelas maiores e abaixo em menores. Removida a seção de variantes; o treino agora pede nomes para não exigir distinções de pontos estudadas em outra aba. Conteúdo de Niqqud/Dagesh preservado. Suíte automatizada aprovada; sem conferência visual em sessão gráfica.
+
+### Niqqud em categorias e exemplos gráficos
+
+Niqqud reúne os 18 tópicos existentes em quatro categorias sempre visíveis, com cartões e detalhes ao selecionar, sem navegação por etapas. Mantidas explicações de Sheva/Hataf, letras vocálicas e leitura contextual, comparações e treino por categoria. A seleção mostra combinações gráficas com as 22 letras; Holam ḥaser editorial permanece exclusivamente em Vav. Exemplos não são palavras nem validação de uso gramatical; Hataf e Qamats Qatan têm ressalvas explícitas. Não foram acrescentados sinais ou fontes; Dagesh e outras marcas não vocálicas permanecem na aba própria. O detalhe de Shin agora mostra שׁ/Shin/SH e שׂ/Sin/S com posição dos pontos.
+
+Validação automatizada: suíte aprovada, incluindo categorias, geração dos exemplos, combinações com Vav/Yod e restrição da marca editorial ao Vav. Conferência visual no desktop e revisão linguística independente permanecem pendentes.
+
+### Correção de renderização dos cartões de Niqqud
+
+Substituído o círculo pontilhado de apoio por Bet (Alef nos Hataf), evitando sobreposição dos sinais combinantes com U+25CC na fonte local. Área dos glifos ampliada, com folga vertical e sem encolhimento flex. Mantidos os sinais Unicode reais. Testes de sinais verificam as letras de apoio; validação visual pelo usuário pendente.
+
+### Círculo pontilhado e classificação das vogais
+A pedido do usuário, os cartões voltaram ao círculo pontilhado, desenhado em SVG com os sinais em posições explícitas para evitar o problema de ancoragem da fonte. Exemplos com letras continuam em Unicode. Cartões e detalhes mostram classificação tradicional longa/breve/reduzida ou dependente de contexto (Sheva), com ressalva sobre diferenças entre tradições e duração fonética. Combinações com Vav/Yod mantidas por inteiro. Validação visual ainda pendente.
+
+- Ajuste solicitado: sinais básicos nos cartões SVG reduzidos proporcionalmente ao círculo, sem alterar seu tamanho: pontos com raio de 1,8 unidades (antes 2,8), traços de 12 unidades (antes 22) e espessura de 2 (antes 3).
+
+### Dagesh e sinais em cartões
+A aba foi reorganizada no padrão visual de Niqqud: três categorias permanentes, sete tópicos selecionáveis (Qal, Chazaq, Shin, Sin, Mappiq, Meteg e Sheva), explicações/comparações ao clicar e introdução/treino recolhíveis. Reaproveitado o conteúdo existente; treino conceitual, sem classificar pontos isolados. Sem etapas nem setas. Suíte automatizada aprovada; conferência visual e avaliação do usuário pendentes.
+
+`AGENTS.md` agora exige empacotar alterações do app e conferir os destinos dos ícones do menu/desktop; corrigir atalhos apenas quando necessário, respeitando permissões e preservando o perfil do Electron.
+
+### Alfabeto demonstrativo e comparação de Dagesh
+Detalhes de Qal/Chazaq agora incluem grade RTL de 22 letras: Qal marca apenas בגדכפת; Chazaq marca 17 consoantes, mantendo guturais e Resh sem ponto pela regra introdutória. Incluídas tabela comparativa e tabela recolhível das seis realizações tradicionais. Distinguidos fechamento/oclusão, geminação e aparência idêntica; ressalva explícita para Vav/Shuruq. Fonte primária consultada: BBH2 Study Guide §§1–2.13, documentada em docs/DAGESH-SOURCES.md; sem exemplos lexicais novos. Validação visual e revisão externa pendentes.
+
+### Leitura bíblica guiada e barra de progresso
+Preservado o layout de versículo e botões de palavras. Adicionados seletores de livro/capítulo/versículo para quatro passagens piloto: Gênesis 1:1 e 1:3, Salmos 119:105 e Provérbios 10:12. Palavras com transliteração simplificada, notas e significado sob demanda; tradução do trecho recolhida. Modo de leitura limpa e posição/palavra/modo persistidos em hi.reading.v1, integrados à continuidade da página inicial. Sem expansão da contagem de conteúdo linguisticamente revisado. Texto/morfologia OSHB/WLC extraídos dos XML públicos, com licença, atribuição, adaptações e limites em docs/READING-SOURCES.md e no próprio app. Nenhuma rede necessária em execução.
+
+AGENTS.md agora pede barra textual estimada nas atualizações, com 100% somente após conclusão/verificações. README atualizado para a coleção piloto. Testes cobrem seleção, limites, tradução oculta, reinício e recuperação de registro corrompido; conferência visual real e revisão linguística independente permanecem pendentes.
+
+### Auditoria com três agentes e Electron real
+Executada auditoria de quizzes, fluxo/legibilidade e persistência. Backup antes das correções em backups/before-audit-fixes-20261112-151720.tar.gz (ignorado). Corrigidos: quiz de alfabeto seguindo seleção; feedback/guardas e alternativas desabilitadas no vocabulário; estilos dos quizzes de sinais; consulta a sinais preservando leitura com botão retorno; deep-link Sheva; foco nos controles/abas e retorno aos cartões; mensagens de falha/sucesso parcial na leitura e familiaridade/SRS; retomada usando estado próprio mais recente da leitura. Legendas ajustadas.
+
+Novas regressões em tests/audit-state.test.cjs, tests/study.test.cjs e tests/alphabet.test.cjs. Suíte de seis arquivos aprovada antes do empacotamento. Electron real com perfil isolado: dez páginas em 1280×850 e 880×650, sem erros de JavaScript nem overflow horizontal nos cenários; cliques, foco, exemplos, respostas e falha de salvamento verificados. Capturas finais renderizadas fora da tela. Relatório completo em docs/AUDIT-2026-11-12.md; revisão linguística, leitor de tela e teclado manual completo continuam pendentes. Não houve chamada online/paga nem uso do perfil pessoal.
+
+Auditoria encerrada: suíte final aprovada; 20 cenários de tela e 12 verificações no Electron concluídos sem falhas nos critérios avaliados. Pacote regenerado e arquivos de src conferidos byte a byte no app.asar; atalhos do menu/desktop apontam para a pasta oficial. Reabrir o aplicativo pelo ícone para usar as correções.
+
+### Revisão: seleção visível e confirmação antes de avançar
+Usuário relatou Fácil sempre destacado e avanço sem feedback. O destaque era fixo do botão primário, não uma seleção; a sessão avançava imediatamente. Agora as quatro avaliações começam neutras; ao escolher, apenas a selecionada se destaca, todas são bloqueadas para evitar dupla gravação, aparece confirmação de salvamento e agendamento (10 minutos ou dias), barra/contador atualizam e Próxima palavra/Concluir revisão permite avançar explicitamente. Reduzida a ilustração para melhorar o espaço da sessão. Testes de revisão adaptados e regressão adicionada; suíte completa aprovada. Electron isolado confirmou seleção, feedback, conclusão e persistência após recarregar.
+
+README recebeu aviso destacado, solicitado pelo usuário, de que o app está em desenvolvimento, não está 100% completo e pode conter bugs e falhas de interface/funcionamento. Testes não garantem ausência de problemas. A descrição da Revisão acompanha seleção explícita, confirmação do agendamento e avanço manual.

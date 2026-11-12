@@ -34,9 +34,9 @@ function addReviewWords(){
  batch.forEach(w=>{s[w.id]=emptyReviewRow()});
  return saveSrs(s)?batch.length:false;
 }
-let reviewItems=[],reviewCursor=0,reviewRevealed=false,reviewToken=0;
+let reviewItems=[],reviewCursor=0,reviewRevealed=false,reviewToken=0,reviewAnswer=null;
 function reviewPage(){
- reviewItems=[];reviewCursor=0;reviewRevealed=false;reviewToken++;
+ reviewItems=[];reviewCursor=0;reviewRevealed=false;reviewAnswer=null;reviewToken++;
  const s=getSrs(),due=dueWords(),tracked=trackedWords(),remaining=words.length-tracked.length;
  $('#content').innerHTML=`<div id="reviewOverview"><div class="stats"><div class="stat"><small>PARA REVISAR AGORA</small><strong id="reviewDueCount">${due.length}</strong></div><div class="stat"><small>EM REVISÃO</small><strong>${tracked.length}</strong></div><div class="stat"><small>PALAVRAS DISPONÍVEIS</small><strong>${words.length}</strong></div></div>
  <div class="lesson"><h3>Revisão espaçada</h3><p>Reconheça a palavra antes de pedir ajuda. As avaliações são de recordação pessoal e não comprovam domínio. “Não lembrei” traz a palavra de volta em 10 minutos; as outras avaliações agendam a próxima revisão em dias.</p>
@@ -50,7 +50,7 @@ function reviewPage(){
 function startReview(list){
  const dueIds=new Set(dueWords().map(w=>w.id));
  reviewItems=dueWords().filter(w=>list.some(item=>item.id===w.id)&&dueIds.has(w.id));
- reviewCursor=0;reviewRevealed=false;
+ reviewCursor=0;reviewRevealed=false;reviewAnswer=null;
  if(!reviewItems.length){reviewPage();return;}
  $('#beginReview').disabled=true;$('#addReview').disabled=true;$('#refreshReview').disabled=true;
  const overview=$('#reviewOverview');if(overview)overview.hidden=true;
@@ -60,12 +60,12 @@ function startReview(list){
 }
 function drawReview(){
  const target=$('#reviewSession');if(!target)return;
- reviewToken++;reviewRevealed=false;
+ reviewToken++;reviewRevealed=false;reviewAnswer=null;
  if(reviewCursor>=reviewItems.length){
-  reviewPage();$('#reviewMessage').textContent='Revisão concluída. As avaliações foram salvas neste computador.';return;
+  reviewPage();const message=$('#reviewMessage');message.textContent='Revisão concluída. As avaliações foram salvas neste computador.';message.tabIndex=-1;message.focus();return;
  }
  const w=reviewItems[reviewCursor];
- target.innerHTML=`<div class="card quiz review-card"><div class="review-session-header"><span>Palavra ${reviewCursor+1} de ${reviewItems.length}</span><button class="btn secondary" onclick="reviewPage()">Voltar à fila</button></div><div class="quizvisual">${visuals[w.visual]||'—'}</div><div class="hebrewline" lang="he" dir="rtl">${safeText(w.hebrew)}</div><div class="translit">${safeText(w.translit)}</div><p>Você reconhece esta palavra? Avalie sua lembrança ou peça ajuda em português.</p><button class="btn secondary" onclick="revealReview(${reviewToken})">Tenho dúvida</button><div id="reviewReveal" aria-live="polite"></div><div class="choices review-grades"><button class="btn secondary" onclick="gradeReview(1,${reviewToken})">Não lembrei</button><button class="btn secondary" onclick="gradeReview(3,${reviewToken})">Difícil</button><button class="btn secondary" onclick="gradeReview(4,${reviewToken})">Lembrei</button><button class="btn" onclick="gradeReview(5,${reviewToken})">Fácil</button></div><p class="muted">Se pedir ajuda, escolha “Não lembrei” ou “Difícil” para registrar a dificuldade.</p></div>`;
+ target.innerHTML=`<div class="card quiz review-card"><div class="review-session-header"><span id="reviewSessionPosition">Palavra ${reviewCursor+1} de ${reviewItems.length} · ${reviewCursor} avaliadas</span><button class="btn secondary" onclick="reviewPage()">Voltar à fila</button></div><progress class="review-progress" id="reviewProgress" max="${reviewItems.length}" value="${reviewCursor}" aria-label="Progresso da sessão de revisão"></progress><div class="quizvisual">${visuals[w.visual]||'—'}</div><div class="hebrewline" lang="he" dir="rtl">${safeText(w.hebrew)}</div><div class="translit">${safeText(w.translit)}</div><p>Você reconhece esta palavra? Escolha como foi lembrar; depois avance para a próxima palavra.</p><button class="btn secondary" onclick="revealReview(${reviewToken})">Tenho dúvida</button><div id="reviewReveal" aria-live="polite"></div><div class="choices review-grades"><button class="btn secondary" data-grade="1" aria-pressed="false" onclick="gradeReview(1,${reviewToken})">Não lembrei</button><button class="btn secondary" data-grade="3" aria-pressed="false" onclick="gradeReview(3,${reviewToken})">Difícil</button><button class="btn secondary" data-grade="4" aria-pressed="false" onclick="gradeReview(4,${reviewToken})">Lembrei</button><button class="btn secondary" data-grade="5" aria-pressed="false" onclick="gradeReview(5,${reviewToken})">Fácil</button></div><div id="reviewGradeFeedback" class="review-grade-feedback" role="status" aria-live="polite"></div><button class="btn" id="nextReviewWord" onclick="advanceReview(${reviewToken})" hidden>Próxima palavra →</button><p class="muted">Se pedir ajuda, escolha “Não lembrei” ou “Difícil” para registrar a dificuldade.</p></div>`;
  const first=$('#reviewSession button');if(first&&first.focus)first.focus();
 }
 window.revealReview=token=>{
@@ -74,10 +74,27 @@ window.revealReview=token=>{
 };
 window.gradeReview=(quality,token)=>{
  const w=reviewItems[reviewCursor];
- if(page!=='review'||token!==reviewToken||!w||![1,3,4,5].includes(quality))return;
- if(!nextReview(w.id,quality))return;
+ if(page!=='review'||token!==reviewToken||reviewAnswer||!w||![1,3,4,5].includes(quality))return;
+ const result=nextReview(w.id,quality);
+ if(!result)return;
+ reviewAnswer={quality,due:result.due};
+ document.querySelectorAll('.review-grades button').forEach(button=>{
+  const selected=Number(button.getAttribute('data-grade'))===quality;
+  button.disabled=true;
+  button.setAttribute('aria-pressed',String(selected));
+  button.classList.toggle('review-selected',selected);
+ });
+ const labels={1:'Não lembrei',3:'Difícil',4:'Lembrei',5:'Fácil'};
+ $('#reviewGradeFeedback').textContent=`${labels[quality]} ✓ · Avaliação salva. ${quality===1?'Esta palavra volta em 10 minutos.':`Próxima revisão em ${result.interval} ${result.interval===1?'dia':'dias'}.`}`;
+ $('#reviewProgress').value=reviewCursor+1;
+ $('#reviewSessionPosition').textContent=`Palavra ${reviewCursor+1} de ${reviewItems.length} · ${reviewCursor+1} ${reviewCursor===0?'avaliada':'avaliadas'}`;
+ const next=$('#nextReviewWord');next.hidden=false;
+ next.textContent=reviewCursor+1===reviewItems.length?'Concluir revisão ✓':'Próxima palavra →';
+ next.focus();
+};
+window.advanceReview=token=>{
+ if(page!=='review'||token!==reviewToken||!reviewAnswer)return;
  reviewCursor++;drawReview();
- const count=$('#reviewDueCount');if(count)count.textContent=dueWords().length;
 };
 function aiPage(){
  $('#content').innerHTML=`<div class="hero"><div><div class="eyebrow">OPCIONAL · REQUER INTERNET</div><h2>Professor de hebraico bíblico com IA</h2><p>O curso continua funcionando offline. Somente sua pergunta e o contexto que você escrever serão enviados ao provedor quando solicitar uma resposta.</p></div><div class="hebrew">לָמַד</div></div>
@@ -112,7 +129,10 @@ render=function(){
 const oldMark=mark;
 mark=function(id){
  if(!oldMark(id))return false;
- const s=getSrs();if(!s[id]){s[id]=emptyReviewRow();return saveSrs(s)}
+ const s=getSrs();if(!s[id]){
+  s[id]=emptyReviewRow();
+  if(!saveSrs(s)){progressNotice('A familiaridade foi salva, mas não foi possível adicionar a palavra à revisão. Tente novamente em “Já conheço” ou “Conhecida ✓”.');return false;}
+ }
  return true;
 };
 window.mark=mark;

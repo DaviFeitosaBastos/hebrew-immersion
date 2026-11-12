@@ -16,7 +16,7 @@ for (const course of ['niqqud', 'dagesh']) {
     const { nodes, run } = setup();
     for (let stage = 0; stage < 4; stage++) {
       run(`setSignsStage('${course}',${stage})`);
-      assert.ok(nodes['#signsPanel'].innerHTML.includes('<h3>'));
+      assert.ok(nodes['#content'].innerHTML.includes('<h3>'));
     }
     run(`setSignsStage('${course}',1)`);
     const count = run(`signsCourses.${course}.items.length`);
@@ -93,4 +93,54 @@ test('subsequent questions stay in the selected group', () => {
       assert.equal(run(`signsQuestion.options.every(o=>signGroup('niqqud',${index}).items.includes(o.index))`), true);
     }
   }
+});
+
+test('Niqqud catalog exposes all categories and shows safe alphabet demonstrations', () => {
+  const { nodes, run } = setup();
+  run("renderSignsCourse('niqqud')");
+  assert.equal((nodes['#content'].innerHTML.match(/class="niqqud-tile"/g)||[]).length,18);
+  assert.equal((nodes['#content'].innerHTML.match(/class="niqqud-sign-diagram"/g)||[]).length,12);
+  assert.ok(nodes['#content'].innerHTML.includes('stroke-dasharray'));
+  assert.equal(run('niqqudLengths[0]'),'Breve');
+  assert.equal(run('niqqudLengths[1]'),'Longa');
+  assert.equal(run('niqqudLengths[9]'),'Reduzida');
+  assert.equal(run('niqqudLengths[12]'),'Breve');
+  for (let i=0;i<18;i++) {
+    run(`selectSign('niqqud',${i})`);
+    assert.ok(!nodes['#signDetail'].innerHTML.includes('undefined'));
+    assert.equal((nodes['#signDetail'].innerHTML.match(/<small>/g)||[]).length,i===17?1:22);
+  }
+  assert.equal(run("niqqudSample(7,'ב')"),'בוּ');
+  assert.equal(run("niqqudSample(13,'ב')"),'בוֹ');
+  assert.equal(run("niqqudSample(14,'ב')"),'בִי');
+  assert.equal(run("niqqudSample(17,'ב')"),'וֺ');
+});
+
+test('Dagesh catalog exposes existing marks directly without step navigation', () => {
+  const { nodes, run } = setup();
+  run("renderSignsCourse('dagesh')");
+  assert.equal((nodes['#content'].innerHTML.match(/class="niqqud-tile"/g)||[]).length,7);
+  assert.ok(!nodes['#content'].innerHTML.includes('alphabet-steps'));
+  for (let index=0;index<7;index++) {
+    run(`selectSign('dagesh',${index},true)`);
+    assert.ok(!nodes['#signDetail'].innerHTML.includes('undefined'));
+    assert.ok(!nodes['#signDetail'].innerHTML.includes('Seguinte'));
+    run(`newSignQuestion('dagesh',${index})`);
+    assert.equal(run('signsQuestion.kind'),'concept');
+  }
+  run("selectSign('dagesh',2)");
+  assert.ok(nodes['#signDetail'].innerHTML.includes('שׁ'));
+  assert.ok(nodes['#signDetail'].innerHTML.includes('שׂ'));
+});
+
+test('Dagesh examples respect letter restrictions and separate Qal from gemination', () => {
+  const { nodes, run } = setup();
+  for (const [index,count] of [[0,6],[1,17]]) {
+    run(`selectSign('dagesh',${index})`);
+    const html=nodes['#signDetail'].innerHTML;
+    assert.equal((html.match(/class="dagesh-applicable"/g)||[]).length,count);
+    assert.ok(html.includes('dagesh-table'));
+    for (const invalid of ['אּ','הּ','חּ','עּ','רּ']) assert.ok(!run(`dageshAlphabet(${index})`).includes(invalid));
+  }
+  assert.ok(run('dageshAlphabet(1)').includes('Shuruq'));
 });

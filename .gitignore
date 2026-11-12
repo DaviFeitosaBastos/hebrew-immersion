@@ -26,3 +26,11 @@ npm-debug.log*
 # Perfis e dados locais do Electron
 /userData/
 /profiles/
+
+# Contexto local para continuidade entre agentes
+/CONTEXT.local.md
+
+# Metadados locais de agentes e credenciais da máquina
+/.agents/
+/.codex/
+/.aws/

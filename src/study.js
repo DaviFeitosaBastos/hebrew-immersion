@@ -10,23 +10,29 @@ function getStudyLocation() {
 }
 function rememberStudy() {
   if (!studyPages.includes(page)) return;
+  if (readingConsultation && ['niqqud','dagesh'].includes(page)) return true;
   let section = '', item = 0;
   if (page === 'practice') item = words.length ? quizIndex % words.length : 0;
+  if (page === 'reading') { section = readingState.passage; item = Math.max(0,readingState.word); }
   if (page === 'alphabet') { section = alphabetSection; item = selectedLetter; }
   if (page === 'niqqud' || page === 'dagesh') { section = String(signsState[page].stage); item = signsState[page].item; }
-  writeProgress(STUDY_KEY, { page, section, item, category: vocabCategory, offset: vocabOffset, view: vocabView });
+  return writeProgress(STUDY_KEY, { page, section, item, category: vocabCategory, offset: vocabOffset, view: vocabView });
 }
 function resumeStudy() {
   const location = getStudyLocation();
   if (!location) { setPage('alphabet'); return; }
   if (location.page === 'alphabet') {
-    alphabetSection = alphabetSections.some(([key]) => key === location.section) ? location.section : 'start';
+    alphabetSection = alphabetSections.some(([key]) => key === location.section) ? location.section : 'letters';
     selectedLetter = alphabet[location.item] ? location.item : 0;
   }
   if (location.page === 'niqqud' || location.page === 'dagesh') {
     const state = signsState[location.page];
     state.stage = /^[0-3]$/.test(location.section) ? Number(location.section) : 0;
     state.item = signsCourses[location.page].items[location.item] ? location.item : 0;
+  }
+  if (location.page === 'reading' && !readingHasStoredPosition && readingPassages.some(p=>p.id===location.section)) {
+    readingState.passage=location.section;
+    readingState.word = currentReading().words[location.item] ? location.item : -1;
   }
   if (location.page === 'practice') quizIndex = words[location.item] ? location.item : 0;
   vocabCategory = location.category;

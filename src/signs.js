@@ -39,6 +39,19 @@ const signsCourses = {
     comparison: `<h3>Sinais parecidos, funções diferentes</h3><p>Esta etapa é um mapa para não confundir as marcas. Abra uma explicação por vez; as regras completas de leitura ficam para lições específicas.</p><details open><summary>Shin e Sin: localize o ponto no alto</summary><div class="signs-comparison"><div><span lang="he" dir="rtl">שׁ</span><small>Shin · ponto à direita · SH</small></div><div><span lang="he" dir="rtl">שׂ</span><small>Sin · ponto à esquerda · S</small></div></div><p>A posição do ponto distingue essas duas leituras. Observe o alto da letra antes de responder. Esse ponto não é o Dagesh interior.</p></details><details><summary>Mappiq: o ponto em הּ final</summary><div class="hebrewline" lang="he" dir="rtl">הּ</div><p>O Mappiq indica ה consonantal no final da palavra. O ponto não deve ser automaticamente chamado de Dagesh: a identidade da letra e sua posição precisam ser consideradas.</p></details><details><summary>Meteg: uma marca vertical</summary><p>Meteg é uma pequena marca vertical associada a aspectos de acento e leitura. Não é um ponto interior. As condições de uso exigem estudo próprio; por enquanto, o objetivo é saber que se trata de outra marca.</p></details><details><summary>Sheva vocal e quiescente</summary><div class="hebrewline" lang="he" dir="rtl">בְ</div><p>O Sheva fica abaixo da letra. A distinção entre vocal e quiescente depende do contexto e não é identificada apenas pela forma dos dois pontos. Retome a introdução em Niqqud antes de tentar analisar ocorrências em palavras.</p></details>`
   }
 };
+// Reuse the existing “other signs” explanations as directly selectable topics.
+signsCourses.dagesh.items.push(
+  ['שׁ','Shin','O ponto fica no alto, à direita da letra.','Indicação introdutória: SH.','Esse ponto distingue Shin de Sin; não é o Dagesh interior.'],
+  ['שׂ','Sin','O ponto fica no alto, à esquerda da letra.','Indicação introdutória: S.','Compare com Shin: a posição do ponto muda a leitura.'],
+  ['הּ','Mappiq','Um ponto no interior de ה final.','Indica He consonantal no final da palavra.','A identidade da letra e sua posição precisam ser consideradas. Não chame automaticamente esse ponto de Dagesh.'],
+  ['בֽ','Meteg','Uma pequena marca vertical associada à letra.','Associada a aspectos de acento e leitura.','Não é um ponto interior. As condições de uso exigem estudo próprio; este é um esquema gráfico, não uma palavra.'],
+  ['בְ','Sheva','Dois pontos verticais abaixo da letra.','Pode ser vocal ou quiescente, conforme o contexto.','Vocal indica leitura com vogal; quiescente, sem vogal. Essa distinção não é identificada apenas pela forma. Retome a categoria de Sheva em Niqqud.']
+);
+const dageshGroups = [
+  { name:'Dagesh', note:'O mesmo ponto, dois usos. A letra e o contexto fazem a diferença.', items:[0,1] },
+  { name:'Pontos que distinguem letras', note:'Compare a posição do ponto no alto de Shin e Sin.', items:[2,3] },
+  { name:'Outras marcas de leitura', note:'Reconheça cada marca sem confundir suas funções.', items:[4,5,6] }
+];
 // Existing indices remain stable so saved bookmarks still point to the same topic.
 const niqqudGroups = [
   { name: 'Sinais básicos', items: [0,1,2,3,4,5,6], note: 'Comece pelo desenho e pela posição de cada sinal.' },
@@ -59,22 +72,101 @@ function signPicker(course) {
 const signsState = { niqqud: { stage: 0, item: 0 }, dagesh: { stage: 0, item: 0 } };
 let signsQuestion = null;
 
+// Graphic demonstrations reuse the reviewed introductory signs; they are not words.
+const niqqudLetters = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
+const niqqudSounds = ['a','a','e','e','i','o','u','u','contextual','ă','ĕ','ŏ','o','o','i','e','e','o'];
+const niqqudLengths = ['Breve','Longa','Breve','Longa','Breve','Longa','Breve','Longa','Depende do contexto','Reduzida','Reduzida','Reduzida','Breve','Longa','Longa','Longa','Longa','Longa'];
+function niqqudCardSymbol(index) {
+  // Draw the placeholder and marks separately: combining marks do not anchor
+  // reliably to U+25CC in the bundled font. Text examples keep real Unicode.
+  if ([7,13,14,15,16,17].includes(index)) return `<b lang="he" dir="rtl">${signsCourses.niqqud.items[index][0]}</b>`;
+  const dot = (x,y) => `<circle cx="${x}" cy="${y}" r="1.8" fill="currentColor"/>`;
+  const bar = '<path d="M34 54H46"/>';
+  const qamats = '<path d="M34 54H46M40 54V59"/>';
+  const segol = dot(36,53)+dot(44,53)+dot(40,59);
+  const sheva = dot(55,53)+dot(55,64);
+  const marks = {
+    0:bar, 1:qamats, 2:segol, 3:dot(36,54)+dot(44,54),
+    4:dot(40,54), 5:dot(29,11), 6:dot(36,52)+dot(40,57)+dot(44,62),
+    8:dot(40,54)+dot(40,65),
+    9:'<path d="M22 58H40"/>'+sheva,
+    10:dot(24,54)+dot(38,54)+dot(31,65)+sheva,
+    11:'<path d="M22 56H40M31 56V64"/>'+sheva,
+    12:qamats
+  };
+  return `<svg class="niqqud-sign-diagram" viewBox="0 0 80 88" role="img" aria-label="${signsCourses.niqqud.items[index][1]}"><circle cx="40" cy="30" r="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2.4 3.6"/><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">${marks[index]}</g></svg>`;
+}
+function niqqudSample(index, letter) {
+  const marks = ['ַ','ָ','ֶ','ֵ','ִ','ֹ','ֻ',null,'ְ','ֲ','ֱ','ֳ','ָ'];
+  if (index === 7) return letter + 'וּ';
+  if (index === 13) return letter + 'וֹ';
+  if ([14,15,16].includes(index)) return letter + ({14:'ִ',15:'ֵ',16:'ֶ'})[index] + 'י';
+  if (index === 17) return 'וֺ';
+  return letter + marks[index];
+}
+function renderNiqqud(target) {
+  const data = signsCourses.niqqud, state = signsState.niqqud;
+  target.innerHTML = `<div class="niqqud-overview">${readingReturnLink()}<section class="lesson alphabet-copy"><span class="eyebrow">SINAIS DE LEITURA</span><p class="niqqud-lead">Escolha um sinal para ver sua forma, sua leitura e como ele se combina com as letras.</p>
+    ${niqqudGroups.map(group => `<section class="niqqud-category"><h3>${group.name}</h3><p>${group.note}</p><div class="niqqud-tiles">${group.items.map(i => `<button class="niqqud-tile" data-sign-index="${i}" aria-pressed="${state.item === i}" aria-controls="signDetail" onclick="selectSign('niqqud',${i},true)">${niqqudCardSymbol(i)}<span>${data.items[i][1]}</span><small>${niqqudSounds[i]} <span aria-hidden="true">·</span> ${niqqudLengths[i]}</small></button>`).join('')}</div></section>`).join('')}
+    <p class="niqqud-key">O círculo pontilhado marca o lugar da letra. Longa e breve são classificações tradicionais, não uma duração fixa em todas as tradições de leitura. Vogais reduzidas são muito breves; Sheva depende do contexto. Combinações com Vav e Yod aparecem por inteiro.</p></section>
+    <section id="signDetail" class="lesson alphabet-copy niqqud-detail" role="region" aria-label="Detalhes do sinal"></section>
+    <section class="lesson alphabet-copy niqqud-resources"><details><summary>Primeiros passos e limites da pronúncia</summary>${data.opening}</details><details><summary>Comparações e leitura contextual</summary>${data.comparison}</details><details ${state.stage === 3 ? 'open' : ''}><summary>Praticar a categoria selecionada</summary><p>Treino introdutório sem áudio ou avaliação de domínio.</p><div id="signQuestion"></div><div class="choices" id="signChoices"></div><div id="signFeedback" role="status" aria-live="polite"></div><button class="btn secondary" id="nextSignQuestion" onclick="newSignQuestion('niqqud')" disabled>Próxima questão</button></details></section></div>`;
+  selectSign('niqqud',state.item);
+  newSignQuestion('niqqud',state.item);
+}
+function backToSignCards() {
+  const selected = $('.niqqud-tile[aria-pressed="true"]');
+  if (selected) { selected.focus(); if (selected.scrollIntoView) selected.scrollIntoView({block:'center'}); }
+}
+function signCardsBackButton() { return '<button class="btn secondary tiny signs-back" onclick="backToSignCards()">← Voltar aos sinais</button>'; }
+function renderNiqqudDetail(index) {
+  const item = signsCourses.niqqud.items[index];
+  const letters = index === 17 ? ['ו'] : niqqudLetters;
+  $('#signDetail').innerHTML = `${signCardsBackButton()}<div class="niqqud-detail-heading"><span class="niqqud-detail-symbol" lang="he" dir="rtl">${item[0]}</span><div><span class="eyebrow">${signGroup('niqqud',index).name}</span><h3 id="niqqudSelectedHeading" tabindex="-1">${item[1]}</h3><span class="niqqud-length">${niqqudLengths[index]} · classificação tradicional</span><p>${item[3]}</p></div></div><p>${item[2]}</p><h4>${index === 17 ? 'Uma marca específica para Vav' : 'Veja com as 22 letras'}</h4><p class="niqqud-example-note">${index === 17 ? 'Esta marca editorial pertence ao Vav consonantal. Não se aplica às outras letras.' : 'Demonstração gráfica, da direita para a esquerda: são combinações isoladas, não palavras nem regras de uso.'}${[9,10,11].includes(index) ? ' As vogais reduzidas aparecem sobretudo nas guturais א, ה, ח e ע; a grade não indica uso habitual nas demais letras.' : ''}${[7,13,14,15,16].includes(index) ? ' Observe a letra seguida da combinação vocálica; a letra de apoio não é um sinal aplicado dentro de cada consoante.' : ''}${index === 12 ? ' A leitura de Qamats Qatan depende da palavra, mesmo quando o desenho é igual ao de Qamats.' : ''}</p><div class="niqqud-examples">${letters.map((letter,i) => `<div><b lang="he" dir="rtl">${niqqudSample(index,letter)}</b><small>${index === 17 ? 'Vav' : ['Alef','Bet','Gimel','Dalet','He','Vav','Zayin','Chet','Tet','Yod','Kaf','Lamed','Mem','Nun','Samekh','Ayin','Pe','Tsadi','Qof','Resh','Shin','Tav'][i]}</small></div>`).join('')}</div><details><summary>Mais sobre este sinal</summary><p>${item[4]}</p></details>`;
+  document.querySelectorAll('.niqqud-tile').forEach(button => button.setAttribute('aria-pressed',String(Number(button.getAttribute('data-sign-index')) === index)));
+}
+
+function dageshCardSymbol(index) {
+  if ([2,3,4].includes(index)) return `<b lang="he" dir="rtl">${signsCourses.dagesh.items[index][0]}</b>`;
+  const mark = index === 5 ? '<path d="M40 51V62" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' : index === 6 ? '<circle cx="40" cy="53" r="1.8"/><circle cx="40" cy="61" r="1.8"/>' : '<circle cx="40" cy="30" r="1.8"/>';
+  return `<svg class="niqqud-sign-diagram" viewBox="0 0 80 88" role="img" aria-label="${signsCourses.dagesh.items[index][1]}"><circle cx="40" cy="30" r="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2.4 3.6"/><g fill="currentColor">${mark}</g></svg>`;
+}
+function renderDagesh(target) {
+  const data=signsCourses.dagesh, state=signsState.dagesh;
+  target.innerHTML=`<div class="niqqud-overview dagesh-overview">${readingReturnLink()}<section class="lesson alphabet-copy"><span class="eyebrow">DAGESH E SINAIS</span><p class="niqqud-lead">Escolha uma marca para entender onde ela aparece e o que indica.</p>${dageshGroups.map(group=>`<section class="niqqud-category"><h3>${group.name}</h3><p>${group.note}</p><div class="niqqud-tiles">${group.items.map(i=>`<button class="niqqud-tile" data-sign-index="${i}" aria-pressed="${state.item===i}" aria-controls="signDetail" onclick="selectSign('dagesh',${i},true)">${dageshCardSymbol(i)}<span>${data.items[i][1]}</span><small>${['Realização da consoante','Duplicação da consoante','SH · ponto à direita','S · ponto à esquerda','He final consonantal','Marca vertical','Leitura contextual'][i]}</small></button>`).join('')}</div></section>`).join('')}<p class="niqqud-key">O círculo pontilhado marca o lugar da letra. Dagesh Qal e Chazaq têm o mesmo desenho; o ponto isolado não permite distingui-los.</p></section><section id="signDetail" class="lesson alphabet-copy" role="region" aria-label="Detalhes da marca"></section><section class="lesson alphabet-copy"><details><summary>O básico antes das regras</summary>${data.opening}</details><details ${state.stage===3?'open':''}><summary>Praticar os conceitos</summary><p>Responda pela descrição. Este treino não classifica pontos isolados nem comprova domínio.</p><div id="signQuestion"></div><div class="choices" id="signChoices"></div><div id="signFeedback" role="status" aria-live="polite"></div><button class="btn secondary" id="nextSignQuestion" onclick="newSignQuestion('dagesh')" disabled>Próxima questão</button></details></section></div>`;
+  selectSign('dagesh',state.item);
+}
+function dageshAlphabet(index) {
+  const qal = 'בגדכפת', excluded = 'אהחער';
+  return `<h4>O ponto nas letras · ${index === 0 ? 'Qal' : 'Chazaq'}</h4><p class="niqqud-example-note">${index === 0 ? 'Qal se aplica às seis letras בגדכפת. As outras ficam sem ponto nesta grade.' : 'Nesta regra introdutória, Chazaq pode ocorrer nas consoantes, exceto nas guturais א ה ח ע e em ר. A grade mostra a posição gráfica, sem classificar ocorrências reais.'}</p><div class="niqqud-examples dagesh-alphabet">${niqqudLetters.map((letter,i)=>{
+    const active=index===0?qal.includes(letter):!excluded.includes(letter);
+    return `<div class="${active?'dagesh-applicable':'dagesh-inactive'}"><b lang="he" dir="rtl">${letter}${active?'ּ':''}</b><small>${['Alef','Bet','Gimel','Dalet','He','Vav','Zayin','Chet','Tet','Yod','Kaf','Lamed','Mem','Nun','Samekh','Ayin','Pe','Tsadi','Qof','Resh','Shin','Tav'][i]}</small><small>${active?'Com ponto':'Sem aplicação aqui'}</small></div>`;
+  }).join('')}</div>${index===1?'<p class="niqqud-example-note">Em Vav, o esquema וּ representa aqui uma consoante com Dagesh. O mesmo desenho pode representar Shuruq (vogal u) em outro contexto. Não decida só pela aparência.</p>':''}`;
+}
+function dageshComparisonTable() {
+  return `<h4>O que muda?</h4><div class="dagesh-table-wrap"><table class="dagesh-table"><caption>Qal e Chazaq · regra introdutória</caption><thead><tr><th scope="col">Aspecto</th><th scope="col">Qal (lene)</th><th scope="col">Chazaq (forte)</th></tr></thead><tbody><tr><th scope="row">Onde aparece</th><td>Nas seis letras בגדכפת.</td><td>Em regra, nas consoantes além de א ה ח ע ר.</td></tr><tr><th scope="row">O que indica</th><td>Realização oclusiva: som produzido com fechamento da passagem do ar.</td><td>Geminação: duplicação da consoante na análise gramatical.</td></tr><tr><th scope="row">Exemplo didático</th><td>בּ → b simples.</td><td>בּ → bb; מּ → mm. São indicações de duplicação, não palavras.</td></tr><tr><th scope="row">Nas letras בגדכפת</th><td>Marca a realização oclusiva, sem duplicar.</td><td>Combina a realização oclusiva com a duplicação.</td></tr><tr><th scope="row">Como distinguir</th><td colspan="2">O ponto tem o mesmo desenho. É preciso analisar a letra e o contexto da palavra.</td></tr></tbody></table></div><details><summary>Os sons nas seis letras de Qal</summary><p>Convenção tradicional apresentada no guia BBH2. As aproximações não descrevem todas as tradições de leitura; não há áudio. “Fricativo” indica passagem de ar com atrito; “oclusivo”, fechamento da passagem.</p><div class="dagesh-table-wrap"><table class="dagesh-table"><thead><tr><th scope="col">Letra</th><th scope="col">Sem ponto · fricativo</th><th scope="col">Com Qal · oclusivo</th></tr></thead><tbody>${[['ב','בּ','Bet','v','b'],['ג','גּ','Gimel','gh (fricativo)','g'],['ד','דּ','Dalet','th sonoro (como em inglês “the”)','d'],['כ','כּ','Kaf','kh','k'],['פ','פּ','Pe','f','p'],['ת','תּ','Tav','th surdo (como em inglês “thin”)','t']].map(([plain,marked,name,soft,hard])=>`<tr><th scope="row">${name}</th><td><span lang="he" dir="rtl">${plain}</span> · ${soft}</td><td><span lang="he" dir="rtl">${marked}</span> · ${hard}</td></tr>`).join('')}</tbody></table></div></details>`;
+}
+function renderDageshDetail(index) {
+  const item=signsCourses.dagesh.items[index];
+  const group=dageshGroups.find(group=>group.items.includes(index));
+  const comparison=index<2 ? [['ב','Sem ponto interior'],['בּ','Com ponto interior']] : [2,3].includes(index) ? [['שׁ','Shin · SH · direita'],['שׂ','Sin · S · esquerda']] : [[item[0],item[1]]];
+  $('#signDetail').innerHTML=`${signCardsBackButton()}<div class="niqqud-detail-heading"><span class="niqqud-detail-symbol" lang="he" dir="rtl">${item[0]}</span><div><span class="eyebrow">${group.name}</span><h3 id="dageshSelectedHeading" tabindex="-1">${item[1]}</h3><p>${item[3]}</p></div></div><p>${item[2]}</p><div class="signs-comparison">${comparison.map(([glyph,label])=>`<div><span lang="he" dir="rtl">${glyph}</span><small>${label}</small></div>`).join('')}</div><p>${item[4]}</p>${index<2?dageshAlphabet(index)+dageshComparisonTable():''}${index===6?'<button class="btn secondary" onclick="openShevaLesson()">Explorar Sheva em Niqqud</button>':''}`;
+  document.querySelectorAll('.dagesh-overview .niqqud-tile').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.getAttribute('data-sign-index'))===index)));
+}
+
+function openShevaLesson() {
+  signsState.niqqud.item=8;
+  setPage('niqqud');
+  $('#niqqudSelectedHeading').focus();
+}
+function readingReturnLink() {
+  return typeof readingConsultation !== 'undefined' && readingConsultation ? `<button class="btn secondary reading-return" onclick="setPage('reading')">← Voltar ao trecho de leitura</button>` : '';
+}
 function renderSignsCourse(course, target = $('#content')) {
   const data = signsCourses[course], state = signsState[course];
   if (!data || !state) return;
-  target.innerHTML = `<div class="alphabet-course signs-course"><nav class="alphabet-steps" aria-label="Etapas de ${course === 'niqqud' ? 'Niqqud' : 'Dagesh'}">${data.stages.map((name, i) => `<button class="btn secondary" ${state.stage === i ? 'aria-current="step"' : ''} onclick="setSignsStage('${course}',${i})">${i + 1}. ${name}</button>`).join('')}</nav><section class="lesson alphabet-copy" id="signsPanel"></section></div>`;
-  const panel = $('#signsPanel');
-  if (state.stage === 0) panel.innerHTML = data.opening;
-  if (state.stage === 1) {
-    panel.innerHTML = `<h3>${course === 'niqqud' ? 'Explore um tópico por vez' : 'Dois usos, uma marca gráfica'}</h3><p>${course === 'niqqud' ? 'Os sinais estão organizados em quatro grupos. Os exemplos isolados são esquemas visuais, não palavras.' : 'Leia as duas explicações. Os exemplos isolados ilustram o ponto; não são ocorrências bíblicas classificadas.'}</p><div id="signDetail"></div><details id="signPicker"><summary>Escolher outro tópico</summary>${signPicker(course)}</details>`;
-    selectSign(course, state.item);
-  }
-  if (state.stage === 2) panel.innerHTML = data.comparison;
-  if (course === 'niqqud' && state.stage === 2) panel.innerHTML += '<details><summary>Referências e limites desta ampliação</summary><p>Os tópicos acrescentados foram conferidos com o guia e suplemento BBH2 de John Beckman (capítulos 2 e 3) e com a especificação Unicode para hebraico. As explicações são sínteses próprias; os exemplos são esquemas, não citações bíblicas.</p><p>A pronúncia é apresentada por aproximações didáticas. Não há áudio ou revisão independente de todo o curso. A documentação do projeto registra as referências completas.</p></details>';
-  if (state.stage === 3) {
-    panel.innerHTML = `<h3>${course === 'niqqud' ? 'Pratique o grupo que você estudou' : 'Confira a diferença entre os usos'}</h3><p>${course === 'niqqud' ? 'A primeira questão usa o tópico selecionado. As seguintes ficam no mesmo grupo. Para mudar de grupo, volte a Explore os sinais.' : 'Responda pelo que a explicação descreve. O ponto isolado não basta para classificar Qal ou Chazaq.'}</p><p class="muted">Treino introdutório sem áudio ou avaliação de domínio.</p><div id="signQuestion"></div><div class="choices" id="signChoices"></div><div id="signFeedback" role="status" aria-live="polite"></div><button class="btn secondary" id="nextSignQuestion" onclick="newSignQuestion('${course}')" disabled>Próxima questão</button>`;
-    newSignQuestion(course, state.item);
-  } else panel.innerHTML += `<div class="alphabet-letter-actions"><button class="btn" onclick="setSignsStage('${course}',${state.stage + 1})">${state.stage === 2 ? 'Praticar' : 'Continuar'} →</button></div>`;
+  if (course === 'niqqud') { renderNiqqud(target); return; }
+  renderDagesh(target);
 }
 
 function setSignsStage(course, stage) {
@@ -86,18 +178,20 @@ function setSignsStage(course, stage) {
   if (heading) { heading.tabIndex = -1; heading.focus(); }
 }
 
-function selectSign(course, index) {
+function selectSign(course, index, focusDetail = false) {
   const data = signsCourses[course];
   if (!data || !Number.isInteger(index) || !data.items[index]) return;
   signsState[course].item = index;
   if (typeof rememberStudy === 'function') rememberStudy();
-  const picker = $('#signPicker'); if (picker) picker.open = false;
-  const item = data.items[index], group = signGroup(course,index);
-  const order = course === 'niqqud' ? niqqudGroups.flatMap(group=>group.items) : data.items.map((_,i)=>i);
-  const position = order.indexOf(index), previous = order[position-1], next = order[position+1];
-  const label = group ? `${group.name} · ${group.items.indexOf(index)+1} de ${group.items.length}` : `${index+1} de ${data.items.length}`;
-  $('#signDetail').innerHTML = `<article class="alphabet-letter"><div class="alphabet-letter-heading"><span class="alphabet-symbol" lang="he" dir="rtl">${item[0]}</span><div><span class="eyebrow">${label}</span><h3>${item[1]}</h3><p>${item[2]}</p></div></div><h4>O que isso indica?</h4><p>${item[3]}</p><details><summary>Entenda o cuidado necessário</summary><p>${item[4]}</p></details><div class="alphabet-letter-actions"><button class="btn secondary" onclick="selectSign('${course}',${previous ?? -1})" ${position === 0 ? 'disabled' : ''}>← Anterior</button><button class="btn secondary" onclick="selectSign('${course}',${next ?? -1})" ${position === order.length - 1 ? 'disabled' : ''}>Seguinte →</button><button class="btn" onclick="setSignsStage('${course}',3)">Praticar</button></div></article>`;
-  document.querySelectorAll('.signs-picker .lettertile').forEach(button => button.setAttribute('aria-pressed', String(Number(button.getAttribute('data-sign-index')) === index)));
+  if (course === 'niqqud') {
+    renderNiqqudDetail(index);
+    if (focusDetail) $('#niqqudSelectedHeading').focus();
+    newSignQuestion('niqqud',index);
+    return;
+  }
+  renderDageshDetail(index);
+  if (focusDetail) $('#dageshSelectedHeading').focus();
+  newSignQuestion('dagesh',index);
 }
 
 function newSignQuestion(course, index) {
